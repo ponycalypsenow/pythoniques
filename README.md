@@ -6,6 +6,6 @@ conda install tensorflow
 
 conda install keras
 
-conda install jupyter notebook
+conda install jupyter
 
 jupyter notebook
