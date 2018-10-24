@@ -47,14 +47,10 @@ class Model:
         self.evaluator = evaluator
         self.fitness = [self.evaluator(g) for g in self.population]
         return self
-    
-    def getBest(self):
-        return self.fitness.index(min(self.fitness))
-    
-    def getWorst(self):
-        return self.fitness.index(max(self.fitness))
             
     def evolve(self, maxGenerations = 3000, crossoverRatio = 0.9, mutationRatio = 0.3):
+        getWorst = lambda: self.fitness.index(max(self.fitness))
+        getBest = lambda: self.fitness.index(min(self.fitness))
         getRandom = lambda: random.randrange(0, len(self.population))
         for i in range(0, maxGenerations):
             candidate = self.creator()
@@ -64,13 +60,7 @@ class Model:
                     if random.random() < mutationRatio:
                         candidate[j] = self.mutator(candidate)[j]
             candidateFitness = self.evaluator(candidate)
-            worstIndex = self.getWorst()
+            worstIndex = getWorst()
             if self.fitness[worstIndex] > candidateFitness:
                 self.population[worstIndex], self.fitness[worstIndex] = candidate, candidateFitness
-        return self.population[self.getBest()]
-            
-m = Model()
-m.setCreator(Creators.Real(2, -4.5, 4.5))
-m.setMutator(Mutators.Real(-4.5, 4.5))
-m.setEvaluator(Evaluators.Beale)
-print(m.evolve())
+        return self.population[getBest()]
