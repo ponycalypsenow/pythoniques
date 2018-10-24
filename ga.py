@@ -5,6 +5,11 @@ class Creators:
         def realCreator():
             return [random.uniform(low, high) for _ in range(0, n)]
         return realCreator
+    
+    def Discrete(n, alphabetSize):
+        def discreteCreator():
+            return [random.randint(0, alphabetSize) for _ in range(0, n)]
+        return discreteCreator
 
 class Mutators:
     def Real(low = 0.0, high = 1.0, gamma = 0.01):
@@ -13,9 +18,17 @@ class Mutators:
             return [max(min(v + random.uniform(-d, d), high), low) for v in g]
         return realMutator
     
+    def Discrete(alphabetSize, gamma = 1):
+        def discreteMutator(g):
+            return [max(min(v + random.randint(-gamma, gamma), alphabetSize), 0) for v in g]
+        return discreteMutator
+    
 class Evaluators:
     def Beale(x):
         return (1.5 - x[0] + x[0]*x[1])**2 + (2.25 - x[0] + x[0]*(x[1]**2))**2 + (2.625 - x[0] + x[0]*(x[1]**3))**2
+    
+    def DummyDiscrete(x):
+        return abs(sum([(a - b)**2 for a, b in zip(x, [1,2,3,4])]))
 
 class Model:
     population = []
@@ -41,7 +54,7 @@ class Model:
     def getWorst(self):
         return self.fitness.index(max(self.fitness))
             
-    def evolve(self, maxGenerations = 3000, crossoverRatio = 0.9, mutationRatio = 0.3):
+    def evolve(self, maxGenerations = 3, crossoverRatio = 0.9, mutationRatio = 0.3):
         for i in range(0, maxGenerations):
             self.population[-1] = self.creator()
             for j in range(0, len(self.population[-1])):
@@ -52,8 +65,8 @@ class Model:
                 self.fitness[-1] = self.evaluator(self.population[-1])
             worstIndex = self.getWorst()
             if worstIndex < len(self.population) - 1:
-                self.population[worstIndex], self.population[-1] = self.population[-1], self.population[worstIndex]
-                self.fitness[worstIndex], self.fitness[-1] = self.fitness[-1], self.fitness[worstIndex]
+                self.population[worstIndex] = self.population[-1]
+                self.fitness[worstIndex] = self.fitness[-1]
         return self.population[self.getBest()]
             
 m = Model()
