@@ -36,7 +36,7 @@ class Model:
     
     def setCreator(self, creator, populationSize = 30):
         self.creator = creator
-        self.population = [self.creator() for i in range(0, populationSize + 1)]
+        self.population = [self.creator() for i in range(0, populationSize)]
         return self
     
     def setMutator(self, mutator):
@@ -54,19 +54,19 @@ class Model:
     def getWorst(self):
         return self.fitness.index(max(self.fitness))
             
-    def evolve(self, maxGenerations = 3, crossoverRatio = 0.9, mutationRatio = 0.3):
+    def evolve(self, maxGenerations = 3000, crossoverRatio = 0.9, mutationRatio = 0.3):
+        getRandom = lambda: random.randrange(0, len(self.population))
         for i in range(0, maxGenerations):
-            self.population[-1] = self.creator()
-            for j in range(0, len(self.population[-1])):
+            candidate = self.creator()
+            for j in range(0, len(candidate)):
                 if random.random() < crossoverRatio:
-                    self.population[-1][j] = self.population[random.randrange(0, len(self.population) - 1)][j]
+                    candidate[j] = self.population[getRandom()][j]
                     if random.random() < mutationRatio:
-                        self.population[-1][j] = self.mutator(self.population[-1])[j]
-                self.fitness[-1] = self.evaluator(self.population[-1])
+                        candidate[j] = self.mutator(candidate)[j]
+            candidateFitness = self.evaluator(candidate)
             worstIndex = self.getWorst()
-            if worstIndex < len(self.population) - 1:
-                self.population[worstIndex] = self.population[-1]
-                self.fitness[worstIndex] = self.fitness[-1]
+            if self.fitness[worstIndex] > candidateFitness:
+                self.population[worstIndex], self.fitness[worstIndex] = candidate, candidateFitness
         return self.population[self.getBest()]
             
 m = Model()
