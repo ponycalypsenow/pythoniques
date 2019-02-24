@@ -1,22 +1,18 @@
-from abc import ABC, abstractmethod
 import copy
 
 class Action:    
     def cost(self, state):
         return 1
     
-    @abstractmethod
     def isValid(self, state):
-        pass
+        raise NotImplementedError
     
-    @abstractmethod
     def do(self, state):
-        pass
+        raise NotImplementedError
     
 class Goal:
-    @abstractmethod
     def isValid(self, prevState, nextState):
-        pass
+        raise NotImplementedError
     
 class Step:
     parent = None
@@ -57,7 +53,6 @@ class Planner:
         return plan
 
     def getPlan(self, state, goal):
-        root = Step(state)
         steps = []
-        self.buildGraph(root, steps, copy.copy(self.actions), goal)
+        self.buildGraph(Step(state), steps, copy.copy(self.actions), goal)
         return self.traverseGraph(sorted(steps, key=lambda x: x.cost)[0])
