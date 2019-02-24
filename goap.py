@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-
 import copy
 
 class Action:    
@@ -25,6 +24,9 @@ class Step:
     action = None
     cost = 0
     
+    def __init__(self, state):
+        self.state = state
+    
 class Planner:
     actions = []
     
@@ -35,13 +37,11 @@ class Planner:
         for action in actions:
             if not action.isValid(prevStep.state):
                 continue
-            nextState = action.do(copy.deepcopy(prevStep.state))
-            nextStep = Step()
+            nextStep = Step(action.do(copy.deepcopy(prevStep.state)))
             nextStep.parent = prevStep
-            nextStep.state = nextState
             nextStep.action = action
-            nextStep.cost = prevStep.cost + action.cost(nextState)
-            if goal.isValid(prevStep.state, nextState):
+            nextStep.cost = prevStep.cost + action.cost(nextStep.state)
+            if goal.isValid(prevStep.state, nextStep.state):
                 steps.append(nextStep)
             else:
                 self.buildGraph(nextStep, steps, [a for a in actions if a != action], goal)
@@ -57,8 +57,7 @@ class Planner:
         return plan
 
     def getPlan(self, state, goal):
-        root = Step()
-        root.state = state
+        root = Step(state)
         steps = []
         self.buildGraph(root, steps, copy.copy(self.actions), goal)
         return self.traverseGraph(sorted(steps, key=lambda x: x.cost)[0])
