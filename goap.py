@@ -39,8 +39,10 @@ class Planner:
             nextStep.cost = prevStep.cost + action.cost(nextStep.state)
             if goal.isValid(prevStep.state, nextStep.state):
                 steps.append(nextStep)
+                steps.sort(key=lambda x: x.cost)
             else:
-                self.buildGraph(nextStep, steps, [a for a in actions if a != action], goal)
+                if len(steps) == 0 or steps[0].cost > nextStep.cost:
+                    self.buildGraph(nextStep, steps, [a for a in actions if a != action], goal)
         return
     
     def traverseGraph(self, step):
@@ -55,4 +57,4 @@ class Planner:
     def getPlan(self, state, goal):
         steps = []
         self.buildGraph(Step(state), steps, copy.copy(self.actions), goal)
-        return self.traverseGraph(sorted(steps, key=lambda x: x.cost)[0])
+        return self.traverseGraph(steps[0])
