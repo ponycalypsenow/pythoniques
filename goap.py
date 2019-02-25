@@ -1,15 +1,15 @@
 import copy
 
 class Action:    
-    def cost(self, state):
-        return 1
-    
     def isValid(self, state):
         raise NotImplementedError
     
     def do(self, state):
         raise NotImplementedError
-    
+
+    def cost(self, state):
+        return 1
+        
 class Goal:
     def isValid(self, prevState, nextState):
         raise NotImplementedError
