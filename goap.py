@@ -57,4 +57,4 @@ class Planner:
     def getPlan(self, state, goal):
         steps = []
         self.buildGraph(Step(state), steps, copy.copy(self.actions), goal)
-        return self.traverseGraph(steps[0])
+        return self.traverseGraph(steps[0]) if len(steps) > 0 else []
