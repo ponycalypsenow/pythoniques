@@ -22,13 +22,6 @@ class Mutators:
         def discreteMutator(g):
             return [max(min(v + random.randint(-gamma, gamma), alphabetSize), 0) for v in g]
         return discreteMutator
-    
-class Evaluators:
-    def Beale(x):
-        return (1.5 - x[0] + x[0]*x[1])**2 + (2.25 - x[0] + x[0]*(x[1]**2))**2 + (2.625 - x[0] + x[0]*(x[1]**3))**2
-    
-    def DummyDiscrete(x):
-        return abs(sum([(a - b)**2 for a, b in zip(x, [1,2,3,4])]))
 
 class Model:
     population = []
