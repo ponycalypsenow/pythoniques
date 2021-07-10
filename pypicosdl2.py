@@ -85,7 +85,7 @@ class SDL:
     sdl = None
     window = None
     renderer = None
-    updateFn = None
+    
     events = {
         "keyboard": {},
         "mouse": { "x": 0, "y": 0, "left": False, "right": False},
@@ -119,6 +119,7 @@ class SDL:
         bindFn("SDL_SetRenderDrawColor", [ctypes.c_void_p, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8], ctypes.c_int)
         bindFn("SDL_RenderClear", [ctypes.c_void_p], ctypes.c_int)
         bindFn("SDL_RenderDrawPoint", [ctypes.c_void_p, ctypes.c_int, ctypes.c_int], ctypes.c_int)
+        bindFn("SDL_RenderDrawLine", [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int], ctypes.c_int)
         bindFn("SDL_RenderCopyEx", [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_void_p, ctypes.c_int], ctypes.c_int)
         self.sdl.SDL_Init(SDL_INIT_EVERYTHING)
         self.sdl.SDL_SetHint(SDL_HINT_RENDER_DRIVER, b"opengl")
@@ -131,10 +132,7 @@ class SDL:
         self.sdl.SDL_DestroyWindow(self.window)
         self.sdl.SDL_Quit()
 
-    def setUpdateFn(self, updateFn):
-        self.updateFn = updateFn
-
-    def run(self):
+    def getFrames(self):
         while not self.events["quit"]:
             frameStart = self.sdl.SDL_GetTicks()
             event = SDL_Event()
@@ -157,23 +155,27 @@ class SDL:
                         self.events["mouse"]["right"] = False
                 elif event.type == SDL_QUIT:
                     self.events["quit"] = True
-            if self.updateFn:
-                self.updateFn()
+            yield self.events
             self.sdl.SDL_RenderPresent(self.renderer)
             frameTime = self.sdl.SDL_GetTicks() - frameStart
-            if frameTime < 1000//30:
-                self.sdl.SDL_Delay(1000//30 - frameTime)
+            if frameTime < 1000//60:
+                self.sdl.SDL_Delay(1000//60 - frameTime)
 
     def stop(self):
         self.events["quit"] = True
+
+    def setColor(self, r = 0, g = 0, b = 0, a = 255):
+        self.sdl.SDL_SetRenderDrawColor(self.renderer, r, g, b, a)
             
     def clear(self):
-        self.sdl.SDL_SetRenderDrawColor(self.renderer, 0, 0, 0, 255)
         self.sdl.SDL_RenderClear(self.renderer)
 
     def clip(self, rx = 0, ry = 0, w = 512, h = 386):
         self.sdl.SDL_RenderSetClipRect(self.renderer, 0)
         self.sdl.SDL_RenderSetClipRect(self.renderer, ctypes.pointer(SDL_Rect(rx, ry, w, h)))
+
+    def drawLine(self, rx0, ry0, rx1, rx2):
+        self.sdl.SDL_RenderDrawLine(self.renderer, rx0, ry0, rx1, rx2)
 
     def createTexture(self, data, transparency = 0):
         texture = self.sdl.SDL_CreateTexture(self.renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len(data[0]), len(data))
@@ -190,6 +192,7 @@ class SDL:
     def drawTexture(self, texture, tx, ty, w, h, rx, ry, flipHorizontal = False, flipVertical = False):
         flipFlag = (SDL_FLIP_HORIZONTAL if flipHorizontal else 0) | (SDL_FLIP_VERTICAL if flipVertical else 0)
         self.sdl.SDL_RenderCopyEx(self.renderer, texture, ctypes.pointer(SDL_Rect(tx, ty, w, h)), ctypes.pointer(SDL_Rect(rx, ry, w, h)), 0, 0, flipFlag)
+
 
 class PICO:
     sdl = None
@@ -237,19 +240,6 @@ class PICO:
                 else:
                     l = next(lines, None)
 
-    def run(self):
-        self.sdl.setUpdateFn(self.update)
-        self.sdl.run()
-
-    def stop(self):
-        self.sdl.stop()
-
-    def clear(self):
-        self.sdl.clear()
-
-    def clip(self, rx = 0, ry = 0, w = 512, h = 386):
-        self.sdl.clip(rx, ry, w, h)
-
     def drawSprite(self, n, rx, ry, w = 1, h = 1, flipHorizontal = False, flipVertical = False):
         [tx, ty] = [8*(n%16), 8*(n//16)]
         self.sdl.drawTexture(self.gfx, tx, ty, int(8*w), int(8*h), rx, ry, flipHorizontal, flipVertical)
@@ -262,11 +252,12 @@ class PICO:
     def printText(self, text, rx = 0, ry = 0):
         for (i, c) in enumerate(text):
             self.sdl.drawTexture(self.font, 8*(ord(c) - 32), 0, 8, 8, rx + 8*i, ry)
-    
-    def update(self):
-        self.clear()
-        self.drawMap(0, 0, 0, 0)
-        self.printText("test", self.sdl.events["mouse"]["x"], self.sdl.events["mouse"]["y"])
+
+    def run(self):
+        for frame in self.sdl.getFrames():
+            self.sdl.clear()
+            self.drawSprite(1, frame["mouse"]["x"], frame["mouse"]["y"])
+
 
 pico = PICO(SDL(), "jelpi.p8")
 pico.run()
