@@ -1,7 +1,5 @@
-class Dataset(object):
-    def __init__(self, X, y):
-        self.X = X
-        self.y = y
+import numpy as np
+import time
 
 
 class Tree(object):
@@ -15,8 +13,8 @@ class Tree(object):
                 return np.square(g)/(h + 1.)
             return calc_term(G_l, H_l) + calc_term(G - G_l, H - H_l) - calc_term(G, H)
 
-        def leaf_weight(grad):
-            return np.sum(grad)/(2*len(grad) + 1.)
+        def leaf_weight(g):
+            return np.sum(g)/(2*len(g) + 1.)
 
         self.nodes[id] = {}
         if depth >= self.params['max_depth']:
@@ -57,7 +55,7 @@ class GBT(object):
                        'max_depth': 4, 'learning_rate': 0.7} | params
         self.models = []
 
-    def train(self, train_set, num_boost_round=20, eval_set=None, early_stopping_rounds=5):
+    def train(self, X, y, num_boost_round=20, eval_set=None, early_stopping_rounds=5):
         def forward(X):
             if len(self.models) == 0:
                 return None
@@ -75,13 +73,13 @@ class GBT(object):
         best_eval_loss = np.iinfo(np.int64).max
         best_round = None
         for round in range(num_boost_round):
-            iter_start_time = time.time()
-            grad = gradient(train_set.y, forward(train_set.X))
-            self.models.append(Tree(self.params).build(train_set.X, grad, self.params['learning_rate']**round))
-            train_loss = loss(train_set.X, train_set.y)
-            eval_loss = loss(eval_set.X, eval_set.y) if eval_set else None
+            round_start_time = time.time()
+            grad = gradient(y, forward(X))
+            self.models.append(Tree(self.params).build(X, grad, self.params['learning_rate']**round))
+            train_loss = loss(X, y)
+            eval_loss = loss(eval_set[0], eval_set[1]) if eval_set else None
             print("Round {:>3}, Train's L2: {:.10f}, Eval's L2: {}, Elapsed: {:.2f} secs".format(
-                round, train_loss, '{:.10f}'.format(eval_loss) if eval_loss else '-', time.time() - iter_start_time))
+                round, train_loss, '{:.10f}'.format(eval_loss) if eval_loss else '-', time.time() - round_start_time))
             if eval_loss is not None and eval_loss < best_eval_loss:
                 best_eval_loss, best_round = eval_loss, round
             if round - best_round >= early_stopping_rounds:
