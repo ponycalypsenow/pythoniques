@@ -7,7 +7,7 @@ class Tree(object):
         self.params = params
         self.nodes = [None]*(2**(params['max_depth'] + 1) - 1)
 
-    def build(self, instances, grad, shrinkage_rate, depth=0, id=0):
+    def build(self, samples, grad, shrinkage_rate, depth=0, id=0):
         def split_gain(G, H, G_l, H_l):
             def calc_term(g, h):
                 return np.square(g)/(h + 1.)
@@ -21,22 +21,22 @@ class Tree(object):
             self.nodes[id]['weight'] = leaf_weight(grad)*shrinkage_rate
             return
         G, H = np.sum(grad), 2*len(grad)
-        best_gain, best_feature_id, best_value, best_left_instance_ids, best_right_instance_ids = 0., None, 0., None, None
-        for feature_id in range(instances.shape[1]):
+        best_gain, best_feature_id, best_value, best_left_sample_ids, best_right_sample_ids = 0., None, 0., None, None
+        for feature_id in range(samples.shape[1]):
             G_l, H_l = 0., 0.
-            sorted_instance_ids = instances[:, feature_id].argsort()
-            for j in range(sorted_instance_ids.shape[0]):
-                G_l, H_l = G_l + grad[sorted_instance_ids[j]], H_l + 2
+            sorted_sample_ids = samples[:, feature_id].argsort()
+            for j in range(sorted_sample_ids.shape[0]):
+                G_l, H_l = G_l + grad[sorted_sample_ids[j]], H_l + 2
                 current_gain = split_gain(G, H, G_l, H_l)
                 if current_gain > best_gain:
-                    best_gain, best_feature_id, best_value, best_left_instance_ids, best_right_instance_ids = current_gain, feature_id, instances[
-                        sorted_instance_ids[j]][feature_id], sorted_instance_ids[:j+1], sorted_instance_ids[j+1:]
+                    best_gain, best_feature_id, best_value, best_left_sample_ids, best_right_sample_ids = current_gain, feature_id, samples[
+                        sorted_sample_ids[j]][feature_id], sorted_sample_ids[:j+1], sorted_sample_ids[j+1:]
         if best_gain < self.params['min_split_gain']:
             self.nodes[id]['weight'] = leaf_weight(grad)*shrinkage_rate
         else:
             self.nodes[id]['split_feature_id'], self.nodes[id]['split_value'] = best_feature_id, best_value
-            self.build(instances[best_left_instance_ids], grad[best_left_instance_ids], shrinkage_rate, depth + 1, 2*id + 1)
-            self.build(instances[best_right_instance_ids], grad[best_right_instance_ids], shrinkage_rate, depth + 1, 2*id + 2)
+            self.build(samples[best_left_sample_ids], grad[best_left_sample_ids], shrinkage_rate, depth + 1, 2*id + 1)
+            self.build(samples[best_right_sample_ids], grad[best_right_sample_ids], shrinkage_rate, depth + 1, 2*id + 2)
         return self
 
     def predict(self, x, id=0):
