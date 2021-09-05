@@ -64,7 +64,7 @@ class GBT(object):
 
         def gradient(y, predictions):
             if predictions is None:
-                return np.random.uniform(np.min(y), np.max(y), len(y))
+                predictions = np.random.uniform(np.min(y), np.max(y), len(y))
             return np.array([2*(y[i] - predictions[i]) for i in range(len(y))])
 
         def loss(X, y):
