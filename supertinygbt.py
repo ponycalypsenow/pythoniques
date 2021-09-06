@@ -2,7 +2,15 @@ import numpy as np
 import time
 
 
-class Tree(object):
+class Linear():
+    def train(self, X, y):
+        self.coeffs = np.dot((np.linalg.inv(np.dot(X.T, X))), np.dot(X.T, y))
+
+    def predict(self, x):
+        return np.dot(self.coeffs, x)
+
+
+class Tree():
     def __init__(self, params):
         self.params = params
         self.nodes = [None]*(2**(params['max_depth'] + 1) - 1)
@@ -21,7 +29,7 @@ class Tree(object):
             self.nodes[id]['weight'] = leaf_weight(grad)*shrinkage_rate
             return
         G, H = np.sum(grad), 2*len(grad)
-        best_gain, best_feature_id, best_value, best_left_sample_ids, best_right_sample_ids = 0., None, 0., None, None
+        best_gain, best_feature_id, best_value, best_l_sample_ids, best_r_sample_ids = 0., None, 0., None, None
         for feature_id in range(samples.shape[1]):
             G_l, H_l = 0., 0.
             sorted_sample_ids = samples[:, feature_id].argsort()
@@ -29,14 +37,14 @@ class Tree(object):
                 G_l, H_l = G_l + grad[sorted_sample_ids[j]], H_l + 2
                 current_gain = split_gain(G, H, G_l, H_l)
                 if current_gain > best_gain:
-                    best_gain, best_feature_id, best_value, best_left_sample_ids, best_right_sample_ids = current_gain, feature_id, samples[
-                        sorted_sample_ids[j]][feature_id], sorted_sample_ids[:j+1], sorted_sample_ids[j+1:]
+                    best_gain, best_feature_id, best_value, best_l_sample_ids, best_r_sample_ids = current_gain, feature_id, samples[
+                        sorted_sample_ids[j]][feature_id], sorted_sample_ids[:j + 1], sorted_sample_ids[j + 1:]
         if best_gain < self.params['min_split_gain']:
             self.nodes[id]['weight'] = leaf_weight(grad)*shrinkage_rate
         else:
             self.nodes[id]['split_feature_id'], self.nodes[id]['split_value'] = best_feature_id, best_value
-            self.build(samples[best_left_sample_ids], grad[best_left_sample_ids], shrinkage_rate, depth + 1, 2*id + 1)
-            self.build(samples[best_right_sample_ids], grad[best_right_sample_ids], shrinkage_rate, depth + 1, 2*id + 2)
+            self.build(samples[best_l_sample_ids], grad[best_l_sample_ids], shrinkage_rate, depth + 1, 2*id + 1)
+            self.build(samples[best_r_sample_ids], grad[best_r_sample_ids], shrinkage_rate, depth + 1, 2*id + 2)
         return self
 
     def predict(self, x, id=0):
@@ -49,7 +57,7 @@ class Tree(object):
                 return self.predict(x, 2*id + 2)
 
 
-class GBT(object):
+class GBT():
     def __init__(self, params={}):
         self.params = {'min_split_gain': 0.1,
                        'max_depth': 4,
