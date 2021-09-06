@@ -39,6 +39,7 @@ class Tree():
                 if current_gain > best_gain:
                     best_gain, best_feature_id, best_value, best_l_sample_ids, best_r_sample_ids = current_gain, feature_id, samples[
                         sorted_sample_ids[j]][feature_id], sorted_sample_ids[:j + 1], sorted_sample_ids[j + 1:]
+
         if best_gain < self.params['min_split_gain']:
             self.nodes[id]['weight'] = leaf_weight(grad)*shrinkage_rate
         else:
@@ -79,8 +80,7 @@ class GBT():
             errors = [y - self.predict(x) for x, y in zip(X, y)]
             return np.mean(np.square(errors))
 
-        best_eval_loss = np.iinfo(np.int64).max
-        best_round = None
+        best_eval_loss, best_round = np.iinfo(np.int64).max, None
         for round in range(num_boost_round):
             round_start_time = time.time()
             grad = gradient(y, forward(X))
