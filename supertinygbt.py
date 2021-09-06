@@ -82,8 +82,7 @@ class GBT():
             round_start_time = time.time()
             grad = gradient(y, forward(X))
             self.trees.append(Tree(self.params).build(X, grad, self.params['learning_rate'] if round > 0 else 1))
-            train_loss = loss(X, y)
-            eval_loss = loss(eval_set[0], eval_set[1]) if eval_set else None
+            train_loss, eval_loss = loss(X, y), loss(eval_set[0], eval_set[1]) if eval_set else None
             print("Round {:>3}, Train's L2: {:.10f}, Eval's L2: {}, Elapsed: {:.2f} secs".format(
                 round, train_loss, '{:.10f}'.format(eval_loss) if eval_loss else '-', time.time() - round_start_time))
             if eval_loss is not None and eval_loss < best_eval_loss:
