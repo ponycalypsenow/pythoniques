@@ -28,6 +28,7 @@ class Tree():
         if depth >= self.params['max_depth']:
             self.nodes[id]['weight'] = leaf_weight(grad)*shrinkage_rate
             return
+
         G, H = np.sum(grad), 2*len(grad)
         best_gain, best_feature_id, best_value, best_l_sample_ids, best_r_sample_ids = 0., None, 0., None, None
         for feature_id in range(samples.shape[1]):
