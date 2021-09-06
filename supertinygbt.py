@@ -47,10 +47,11 @@ class Tree():
             self.nodes[id]['split_feature_id'], self.nodes[id]['split_value'] = best_feature_id, best_value
             self.build(samples[best_l_sample_ids], grad[best_l_sample_ids], shrinkage_rate, depth + 1, 2*id + 1)
             self.build(samples[best_r_sample_ids], grad[best_r_sample_ids], shrinkage_rate, depth + 1, 2*id + 2)
+
         return self
 
     def predict(self, x, id=0):
-        if 2*id + 1 >= len(self.nodes) or self.nodes[2*id + 1] is None or self.nodes[2*id + 2] is None:
+        if 2*id + 1 >= len(self.nodes) or (self.nodes[2*id + 1] is None and self.nodes[2*id + 2] is None):
             return self.nodes[id]['weight']
         else:
             if x[self.nodes[id]['split_feature_id']] <= self.nodes[id]['split_value']:
