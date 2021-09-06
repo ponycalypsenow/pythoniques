@@ -76,8 +76,7 @@ class GBT():
             return np.array([2*(y[i] - predictions[i]) for i in range(len(y))])
 
         def loss(X, y):
-            errors = [y - self.predict(x) for x, y in zip(X, y)]
-            return np.mean(np.square(errors))
+            return np.mean(np.square([y - self.predict(x) for x, y in zip(X, y)]))
 
         best_eval_loss, best_round = np.iinfo(np.int64).max, None
         for round in range(num_boost_round):
