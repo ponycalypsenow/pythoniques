@@ -25,7 +25,7 @@ class Tree():
             return np.sum(g)/(2*len(g) + 1.)
 
         if depth >= self.params['max_depth']:
-            self.nodes[id] = {'weight': leaf_weight(grad)*shrinkage_rate}
+            self.nodes[id] = {'weight': leaf_weight(grad)*shrinkage_rate }
             return
         G, H = np.sum(grad), 2*len(grad)
         best_gain, best_feature_id, best_value, best_l_sample_ids, best_r_sample_ids = 0., None, 0., None, None
@@ -39,7 +39,7 @@ class Tree():
                     best_gain, best_feature_id, best_value, best_l_sample_ids, best_r_sample_ids = current_gain, feature_id, samples[
                         sorted_sample_ids[j]][feature_id], sorted_sample_ids[:j + 1], sorted_sample_ids[j + 1:]
         if best_gain < self.params['min_split_gain']:
-            self.nodes[id] = {'weight': leaf_weight(grad)*shrinkage_rate}
+            self.nodes[id] = {'weight': leaf_weight(grad)*shrinkage_rate }
         else:
             self.nodes[id] = {'split_feature_id': best_feature_id, 'split_value': best_value }
             self.build(samples[best_l_sample_ids], grad[best_l_sample_ids], shrinkage_rate, depth + 1, 2*id + 1)
